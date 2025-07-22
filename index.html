@@ -4,8 +4,9 @@
     <meta charset="UTF-8" />
     <title>Campaign Photo Frame Tool</title>
     <style>
-  button {
-    background-color: #0078FF; /* campaign blue */
+  /* Shared button style */
+  .campaign-button {
+    background-color: #0078FF; /* Campaign blue */
     color: #fff;
     padding: 12px 24px;
     border: none;
@@ -15,30 +16,69 @@
     box-shadow: 0 4px 15px rgba(0, 120, 255, 0.2);
     cursor: pointer;
     transition: all 0.3s ease;
+    display: inline-block;
   }
 
-  button:hover {
+  .campaign-button:hover {
     background-color: #005ecb;
     box-shadow: 0 6px 20px rgba(0, 94, 203, 0.3);
     transform: translateY(-2px);
   }
 
+  /* Style for the input[type="file"] using label trick */
   input[type="file"] {
-    font-family: inherit;
-    font-size: 15px;
-    padding: 10px;
-    margin-bottom: 20px;
+    display: none;
+  }
+
+  .upload-label {
+    background-color: #0078FF;
+    color: #fff;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 30px;
+    font-size: 16px;
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(0, 120, 255, 0.2);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-block;
+  }
+
+  .upload-label:hover {
+    background-color: #005ecb;
+    box-shadow: 0 6px 20px rgba(0, 94, 203, 0.3);
+    transform: translateY(-2px);
+  }
+
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    text-align: center;
+    padding: 40px;
+  }
+
+  #preview {
+    margin-top: 20px;
+    max-width: 90%;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
   }
 </style>
   </head>
   <body style="text-align:center; font-family:sans-serif; padding:20px;">
-    <h2>Upload Your Photo</h2>
-    <input type="file" id="fileInput" accept="image/*" />
-    <br><br>
-    <canvas id="canvas" width="1000" height="1000" style="display: none;"></canvas>
-    <img id="preview" style="max-width:90%; display:block; margin:auto;" />
-    <br>
-    <button id="downloadBtn" style="display:none; padding:10px 20px; font-size:16px;">Download Your Image</button>
+  
+  <h2>Upload Your Photo</h2>
+
+  <!-- Hidden input + styled label -->
+  <input type="file" id="fileInput" accept="image/*" />
+  <label for="fileInput" class="upload-label">Upload Image</label>
+
+  <br><br>
+  <canvas id="canvas" width="1000" height="1000" style="display:none;"></canvas>
+  <img id="preview" />
+
+  <br><br>
+  <button id="downloadBtn" class="campaign-button" style="display:none;">Download Your Image</button>
+
 
     <script>
       const overlaySrc = "https://static.wixstatic.com/media/0bec8e_7b41ac88b7964340a50397c005142b31~mv2.png";
