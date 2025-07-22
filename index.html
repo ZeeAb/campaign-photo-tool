@@ -3,6 +3,33 @@
   <head>
     <meta charset="UTF-8" />
     <title>Campaign Photo Frame Tool</title>
+    <style>
+  button {
+    background-color: #0078FF; /* campaign blue */
+    color: #fff;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 30px;
+    font-size: 16px;
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(0, 120, 255, 0.2);
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  button:hover {
+    background-color: #005ecb;
+    box-shadow: 0 6px 20px rgba(0, 94, 203, 0.3);
+    transform: translateY(-2px);
+  }
+
+  input[type="file"] {
+    font-family: inherit;
+    font-size: 15px;
+    padding: 10px;
+    margin-bottom: 20px;
+  }
+</style>
   </head>
   <body style="text-align:center; font-family:sans-serif; padding:20px;">
     <h2>Upload Your Photo</h2>
@@ -14,7 +41,7 @@
     <button id="downloadBtn" style="display:none; padding:10px 20px; font-size:16px;">Download Your Image</button>
 
     <script>
-      const overlaySrc = "https://static.wixstatic.com/media/0bec8e_6078ee12533648a68c39779546e5707b~mv2.png";
+      const overlaySrc = "https://static.wixstatic.com/media/0bec8e_7b41ac88b7964340a50397c005142b31~mv2.png";
 
       document.getElementById("fileInput").addEventListener("change", function (e) {
         const file = e.target.files[0];
