@@ -61,46 +61,47 @@
     max-width: 90%;
     border-radius: 12px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-.campaign-header {
+.campaign-hero {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: 40px;
-  max-width: 1000px;
-  margin: 0 auto 50px auto;
-  padding: 20px;
+  padding: 60px 20px;
+  gap: 60px;
+  max-width: 1200px;
+  margin: 0 auto;
+  flex-wrap: wrap;
 }
 
-.campaign-text {
+.hero-text {
   flex: 1;
   min-width: 300px;
   max-width: 500px;
 }
 
-.campaign-text h1 {
-  font-size: 32px;
-  font-weight: 700;
-  margin-bottom: 12px;
-  color: #0078FF;
+.hero-text h1 {
+  font-size: 42px;
+  font-weight: 800;
+  margin-bottom: 20px;
+  line-height: 1.2;
+  color: #111;
 }
 
-.campaign-text p {
+.hero-text p {
   font-size: 16px;
-  color: #444;
+  color: #555;
   line-height: 1.6;
 }
 
-.campaign-image {
+.hero-image {
   flex: 1;
-  max-width: 50%;
   min-width: 280px;
+  max-width: 500px;
 }
 
-.campaign-image img {
+.hero-image img {
   width: 100%;
   border-radius: 12px;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.08);
 }
     
   }
@@ -109,14 +110,15 @@
   <body style="text-align:center; font-family:sans-serif; padding:20px;">
 
 <div class="campaign-header">
-  <div class="campaign-text">
+<div class="campaign-hero">
+  <div class="hero-text">
     <h1>Create Your Campaign Visual</h1>
     <p>
       Generate a professional 1080x1080px visual perfect for LinkedIn, Twitter, and other social media platforms.
       Show your colleagues and network that you're part of the <strong>ID-Day</strong> movement.
     </p>
   </div>
-  <div class="campaign-image">
+  <div class="hero-image">
     <img src="https://static.wixstatic.com/media/0bec8e_9c66cd89fa5241fb8d41829315326f93~mv2.png" alt="Campaign Example">
   </div>
 </div>
