@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Campaign Photo Frame Tool</title>
+  </head>
+  <body style="text-align:center; font-family:sans-serif; padding:20px;">
+    <h2>Upload Your Photo</h2>
+    <input type="file" id="fileInput" accept="image/*" />
+    <br><br>
+    <canvas id="canvas" width="1000" height="1000" style="display: none;"></canvas>
+    <img id="preview" style="max-width:90%; display:block; margin:auto;" />
+    <br>
+    <button id="downloadBtn" style="display:none; padding:10px 20px; font-size:16px;">Download Your Image</button>
+
+    <script>
+      const overlaySrc = "https://static.wixstatic.com/media/0bec8e_6078ee12533648a68c39779546e5707b~mv2.png";
+
+      document.getElementById("fileInput").addEventListener("change", function (e) {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+
+        reader.onload = function (event) {
+          const userImage = new Image();
+          userImage.onload = function () {
+            const overlay = new Image();
+            overlay.crossOrigin = "anonymous";
+            overlay.onload = function () {
+              const canvas = document.getElementById("canvas");
+              const ctx = canvas.getContext("2d");
+
+              ctx.clearRect(0, 0, canvas.width, canvas.height);
+              ctx.drawImage(userImage, 0, 0, canvas.width, canvas.height);
+              ctx.drawImage(overlay, 0, 0, canvas.width, canvas.height);
+
+              const finalImage = canvas.toDataURL("image/png");
+              document.getElementById("preview").src = finalImage;
+
+              const downloadBtn = document.getElementById("downloadBtn");
+              downloadBtn.style.display = "inline-block";
+              downloadBtn.onclick = function () {
+                const a = document.createElement("a");
+                a.href = finalImage;
+                a.download = "your_campaign_image.png";
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+              };
+            };
+            overlay.src = overlaySrc;
+          };
+          userImage.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    </script>
+  </body>
+</html>
