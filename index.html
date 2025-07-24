@@ -1,186 +1,188 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8" />
-    <title>Campaign Photo Frame Tool</title>
-    <style>
-  /* Shared button style */
-  .campaign-button {
-    background-color: #0078FF; /* Campaign blue */
-    color: #fff;
-    padding: 12px 24px;
-    border: none;
-    border-radius: 30px;
-    font-size: 16px;
-    font-weight: 600;
-    box-shadow: 0 4px 15px rgba(0, 120, 255, 0.2);
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: inline-block;
-  }
+<head>
+  <meta charset="UTF-8" />
+  <title>Create Your Campaign Visual</title>
+  <link href="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.css" rel="stylesheet"/>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      text-align: center;
+      padding: 40px;
+    }
 
-  .campaign-button:hover {
-    background-color: #005ecb;
-    box-shadow: 0 6px 20px rgba(0, 94, 203, 0.3);
-    transform: translateY(-2px);
-  }
+    .campaign-hero {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+      gap: 60px;
+      max-width: 1200px;
+      margin: 0 auto;
+      flex-wrap: wrap;
+    }
 
-  /* Style for the input[type="file"] using label trick */
-  input[type="file"] {
-    display: none;
-  }
+    .hero-text {
+      flex: 1;
+      min-width: 300px;
+      max-width: 500px;
+    }
 
-  .upload-label {
-    background-color: #0078FF;
-    color: #fff;
-    padding: 12px 24px;
-    border: none;
-    border-radius: 30px;
-    font-size: 16px;
-    font-weight: 600;
-    box-shadow: 0 4px 15px rgba(0, 120, 255, 0.2);
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: inline-block;
-  }
+    .hero-text h1 {
+      font-size: 42px;
+      font-weight: 800;
+      margin-bottom: 20px;
+      line-height: 1.2;
+      color: #111;
+    }
 
-  .upload-label:hover {
-    background-color: #005ecb;
-    box-shadow: 0 6px 20px rgba(0, 94, 203, 0.3);
-    transform: translateY(-2px);
-  }
+    .hero-text p {
+      font-size: 16px;
+      color: #555;
+      line-height: 1.6;
+    }
 
-  body {
-    font-family: 'Segoe UI', sans-serif;
-    text-align: center;
-    padding: 40px;
-  }
+    .hero-image {
+      flex: 1;
+      min-width: 280px;
+      max-width: 500px;
+    }
 
-  #preview {
-    margin-top: 20px;
-    max-width: 90%;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-  }
+    .hero-image img {
+      width: 100%;
+      border-radius: 12px;
+      box-shadow: 0 6px 30px rgba(0, 0, 0, 0.08);
+    }
 
-.campaign-hero {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 20px;
-  gap: 60px;
-  max-width: 1200px;
-  margin: 0 auto;
-  flex-wrap: wrap;
-}
+    #crop-area {
+      max-width: 400px;
+      margin: 20px auto;
+    }
 
-.hero-text {
-  flex: 1;
-  min-width: 300px;
-  max-width: 500px;
-}
+    canvas {
+      display: none;
+    }
 
-.hero-text h1 {
-  font-size: 42px;
-  font-weight: 800;
-  margin-bottom: 20px;
-  line-height: 1.2;
-  color: #111;
-}
+    .campaign-button {
+      background-color: #0078FF;
+      color: #fff;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 30px;
+      font-size: 16px;
+      font-weight: 600;
+      box-shadow: 0 4px 15px rgba(0, 120, 255, 0.2);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-block;
+      margin: 10px;
+    }
 
-.hero-text p {
-  font-size: 16px;
-  color: #555;
-  line-height: 1.6;
-}
+    .campaign-button:hover {
+      background-color: #005ecb;
+      box-shadow: 0 6px 20px rgba(0, 94, 203, 0.3);
+      transform: translateY(-2px);
+    }
 
-.hero-image {
-  flex: 1;
-  min-width: 280px;
-  max-width: 500px;
-}
-
-.hero-image img {
-  width: 100%;
-  border-radius: 12px;
-  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.08);
-}
-    
-  }
-</style>
-  </head>
-  <body style="text-align:center; font-family:sans-serif; padding:20px;">
-
-<div class="campaign-header">
-<div class="campaign-hero">
-  <div class="hero-text">
-    <h1>Create Your Campaign Visual</h1>
-    <p>
-      Generate a professional 1080x1080px visual perfect for LinkedIn, Twitter, and other social media platforms.
-      Show your colleagues and network that you're part of the <strong>ID-Day</strong> movement.
-    </p>
-
-    <h2>Upload Your Photo</h2>
-
-  <!-- Hidden input + styled label -->
-  <input type="file" id="fileInput" accept="image/*" />
-  <label for="fileInput" class="upload-label">Upload Image</label>
+    #preview {
+      max-width: 90%;
+      margin-top: 20px;
+      border-radius: 12px;
+    }
+  </style>
+</head>
+  <body>
+  <div class="campaign-hero">
+    <div class="hero-text">
+      <h1>Create Your Campaign Visual</h1>
+      <p>
+        Generate a professional 1080x1080px visual perfect for LinkedIn, Twitter, and other social media platforms.
+        Show your colleagues and network that you're part of the <strong>ID-Day</strong> movement.
+      </p>
+    </div>
+    <div class="hero-image">
+      <img src="https://static.wixstatic.com/media/0bec8e_9c66cd89fa5241fb8d41829315326f93~mv2.png" alt="Campaign Example">
+    </div>
   </div>
-  <div class="hero-image">
-    <img src="https://static.wixstatic.com/media/0bec8e_9c66cd89fa5241fb8d41829315326f93~mv2.png" alt="Campaign Example">
-  </div>
-</div>
-  
-  
 
-  <br><br>
-  <canvas id="canvas" width="1000" height="1000" style="display:none;"></canvas>
-  <img id="preview" />
-
-  <br><br>
+  <input type="file" id="fileInput" accept="image/*" class="campaign-button"/>
+  <button id="cropBtn" class="campaign-button" style="display:none;">Crop & Apply Frame</button>
   <button id="downloadBtn" class="campaign-button" style="display:none;">Download Your Image</button>
 
+  <div id="crop-area">
+    <img id="image" style="max-width:100%; display:none;" />
+  </div>
 
-    <script>
-      const overlaySrc = "https://static.wixstatic.com/media/0bec8e_cc52b1da609a49c091e158ced89aa57b~mv2.png";
+  <canvas id="canvas" width="1000" height="1000"></canvas>
+  <img id="preview" />
 
-      document.getElementById("fileInput").addEventListener("change", function (e) {
-        const file = e.target.files[0];
-        const reader = new FileReader();
+  <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.js"></script>
+  <script>
+    const fileInput = document.getElementById("fileInput");
+    const image = document.getElementById("image");
+    const cropBtn = document.getElementById("cropBtn");
+    const canvas = document.getElementById("canvas");
+    const preview = document.getElementById("preview");
+    const downloadBtn = document.getElementById("downloadBtn");
 
-        reader.onload = function (event) {
-          const userImage = new Image();
-          userImage.onload = function () {
-            const overlay = new Image();
-            overlay.crossOrigin = "anonymous";
-            overlay.onload = function () {
-              const canvas = document.getElementById("canvas");
-              const ctx = canvas.getContext("2d");
+    const overlaySrc = "https://static.wixstatic.com/media/0bec8e_6078ee12533648a68c39779546e5707b~mv2.png";
 
-              ctx.clearRect(0, 0, canvas.width, canvas.height);
-              ctx.drawImage(userImage, 0, 0, canvas.width, canvas.height);
-              ctx.drawImage(overlay, 0, 0, canvas.width, canvas.height);
+    let cropper;
 
-              const finalImage = canvas.toDataURL("image/png");
-              document.getElementById("preview").src = finalImage;
+    fileInput.addEventListener("change", function(e) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
 
-              const downloadBtn = document.getElementById("downloadBtn");
-              downloadBtn.style.display = "inline-block";
-              downloadBtn.onclick = function () {
-                const a = document.createElement("a");
-                a.href = finalImage;
-                a.download = "your_campaign_image.png";
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-              };
-            };
-            overlay.src = overlaySrc;
-          };
-          userImage.src = event.target.result;
-        };
-        reader.readAsDataURL(file);
+      reader.onload = function(event) {
+        image.src = event.target.result;
+        image.style.display = "block";
+        if (cropper) {
+          cropper.destroy();
+        }
+        cropper = new Cropper(image, {
+          aspectRatio: 1,
+          viewMode: 1
+        });
+        cropBtn.style.display = "inline-block";
+      };
+
+      reader.readAsDataURL(file);
+    });
+
+    cropBtn.addEventListener("click", function() {
+      const croppedCanvas = cropper.getCroppedCanvas({
+        width: 1000,
+        height: 1000
       });
-    </script>
-  </body>
+
+      const ctx = canvas.getContext("2d");
+      const baseImage = new Image();
+      baseImage.onload = function () {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(baseImage, 0, 0, canvas.width, canvas.height);
+
+        const overlay = new Image();
+        overlay.crossOrigin = "anonymous";
+        overlay.onload = function () {
+          ctx.drawImage(overlay, 0, 0, canvas.width, canvas.height);
+          const finalImage = canvas.toDataURL("image/png");
+          preview.src = finalImage;
+          preview.style.display = "block";
+
+          downloadBtn.style.display = "inline-block";
+          downloadBtn.onclick = function () {
+            const a = document.createElement("a");
+            a.href = finalImage;
+            a.download = "your_campaign_image.png";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+          };
+        };
+        overlay.src = overlaySrc;
+      };
+      baseImage.src = croppedCanvas.toDataURL("image/png");
+    });
+  </script>
+</body>
 </html>
