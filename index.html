@@ -1,258 +1,182 @@
+
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8" />
-    <title>Campaign Photo Frame Tool</title>
-    <style>
-  /* Shared button style */
-  .campaign-button {
-    background-color: #0078FF; /* Campaign blue */
-    color: #fff;
-    padding: 12px 24px;
-    border: none;
-    border-radius: 30px;
-    font-size: 16px;
-    font-weight: 600;
-    box-shadow: 0 4px 15px rgba(0, 120, 255, 0.2);
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: inline-block;
-  }
+<head>
+  <meta charset="UTF-8" />
+  <title>Create Your Campaign Visual</title>
+  <link href="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.css" rel="stylesheet"/>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      text-align: center;
+      padding: 40px;
+    }
 
-  .campaign-button:hover {
-    background-color: #005ecb;
-    box-shadow: 0 6px 20px rgba(0, 94, 203, 0.3);
-    transform: translateY(-2px);
-  }
+    .campaign-button {
+      background-color: #0078FF;
+      color: #fff;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 30px;
+      font-size: 16px;
+      font-weight: 600;
+      box-shadow: 0 4px 15px rgba(0, 120, 255, 0.2);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-block;
+      margin: 10px;
+    }
 
-  /* Style for the input[type="file"] using label trick */
-  input[type="file"] {
-    display: none;
-  }
+    .campaign-button:hover {
+      background-color: #005ecb;
+      box-shadow: 0 6px 20px rgba(0, 94, 203, 0.3);
+      transform: translateY(-2px);
+    }
 
-  .upload-label {
-    background-color: #0078FF;
-    color: #fff;
-    padding: 12px 24px;
-    border: none;
-    border-radius: 30px;
-    font-size: 16px;
-    font-weight: 600;
-    box-shadow: 0 4px 15px rgba(0, 120, 255, 0.2);
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: inline-block;
-  }
+    .upload-wrapper {
+      position: relative;
+      display: inline-block;
+    }
 
-  .upload-label:hover {
-    background-color: #005ecb;
-    box-shadow: 0 6px 20px rgba(0, 94, 203, 0.3);
-    transform: translateY(-2px);
-  }
+    .upload-wrapper input[type="file"] {
+      position: absolute;
+      left: 0;
+      top: 0;
+      opacity: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+    }
 
-  body {
-    font-family: 'Segoe UI', sans-serif;
-    text-align: center;
-    padding: 40px;
-  }
+    #preview {
+      margin: 40px auto 0 auto;
+      max-width: 90%;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      display: block;
+    }
 
-  #preview {
-    margin-top: 20px;
-    max-width: 90%;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-  }
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.8);
+    }
 
-.campaign-hero {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 20px;
-  gap: 60px;
-  max-width: 1200px;
-  margin: 0 auto;
-  flex-wrap: wrap;
-}
+    .modal-content {
+      margin: 5% auto;
+      padding: 20px;
+      background: #fff;
+      border-radius: 8px;
+      max-width: 600px;
+      text-align: center;
+    }
 
-.hero-text {
-  flex: 1;
-  min-width: 300px;
-  max-width: 500px;
-}
+    .modal img {
+      max-width: 100%;
+      max-height: 400px;
+    }
 
-.hero-text h1 {
-  font-size: 42px;
-  font-weight: 800;
-  margin-bottom: 20px;
-  line-height: 1.2;
-  color: #111;
-}
-
-.hero-text p {
-  font-size: 16px;
-  color: #555;
-  line-height: 1.6;
-}
-
-.hero-image {
-  flex: 1;
-  min-width: 280px;
-  max-width: 500px;
-}
-
-.hero-image img {
-  width: 100%;
-  border-radius: 12px;
-  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.08);
-}
-    
-  }
-</style>
-  
-<link href="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.css" rel="stylesheet"/>
+    canvas {
+      display: none;
+    }
+  </style>
 </head>
-  <body style="text-align:center; font-family:sans-serif; padding:20px;">
+<body>
 
-<div class="campaign-header">
-<div class="campaign-hero">
-  <div class="hero-text">
-    <h1>Create Your Campaign Visual</h1>
-    <p>
-      Generate a professional 1080x1080px visual perfect for LinkedIn, Twitter, and other social media platforms.
-      Show your colleagues and network that you're part of the <strong>ID-Day</strong> movement.
-    </p>
+  <h1>Create Your Campaign Visual</h1>
+  <p>Upload and crop your image to generate a professional 1080x1080px visual with a campaign frame.</p>
 
-    <h2>Upload Your Photo</h2>
+  <label class="upload-wrapper">
+    <span class="campaign-button">Upload Your Image</span>
+    <input type="file" id="fileInput" accept="image/*" />
+  </label>
 
-  <!-- Hidden input + styled label -->
-  <input type="file" id="fileInput" accept="image/*" />
-  <label for="fileInput" class="upload-label">Upload Image</label>
-  </div>
-  <div class="hero-image">
-    <img src="https://static.wixstatic.com/media/0bec8e_9c66cd89fa5241fb8d41829315326f93~mv2.png" alt="Campaign Example">
-  </div>
-</div>
-  
-  
-
-  <br><br>
-  <canvas id="canvas" width="1000" height="1000" style="display:none;"></canvas>
-  <img id="preview" />
-
-  <br><br>
   <button id="downloadBtn" class="campaign-button" style="display:none;">Download Your Image</button>
 
+  <br>
+  <canvas id="canvas" width="1000" height="1000"></canvas>
+  <img id="preview" />
 
-    <script>
-      const overlaySrc = "https://static.wixstatic.com/media/0bec8e_cc52b1da609a49c091e158ced89aa57b~mv2.png";
+  <!-- Modal for cropping -->
+  <div id="cropModal" class="modal">
+    <div class="modal-content">
+      <h2>Crop Your Photo</h2>
+      <img id="cropImage" />
+      <br><br>
+      <button id="applyCrop" class="campaign-button">Apply</button>
+    </div>
+  </div>
 
-      document.getElementById("fileInput").addEventListener("change", function (e) {
-        const file = e.target.files[0];
-        const reader = new FileReader();
+  <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.js"></script>
+  <script>
+    const fileInput = document.getElementById("fileInput");
+    const cropImage = document.getElementById("cropImage");
+    const cropModal = document.getElementById("cropModal");
+    const applyCrop = document.getElementById("applyCrop");
+    const canvas = document.getElementById("canvas");
+    const preview = document.getElementById("preview");
+    const downloadBtn = document.getElementById("downloadBtn");
 
-        reader.onload = function (event) {
-          const userImage = new Image();
-          userImage.onload = function () {
-            const overlay = new Image();
-            overlay.crossOrigin = "anonymous";
-            overlay.onload = function () {
-              const canvas = document.getElementById("canvas");
-              const ctx = canvas.getContext("2d");
+    const overlaySrc = "https://static.wixstatic.com/media/0bec8e_0a7c123d1ad34bb4afcea660b0717ab7~mv2.png";
+    let cropper;
 
-              ctx.clearRect(0, 0, canvas.width, canvas.height);
-              ctx.drawImage(userImage, 0, 0, canvas.width, canvas.height);
-              ctx.drawImage(overlay, 0, 0, canvas.width, canvas.height);
+    fileInput.addEventListener("change", function (e) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onload = function (event) {
+        cropImage.src = event.target.result;
+        cropModal.style.display = "block";
+        if (cropper) cropper.destroy();
+        cropper = new Cropper(cropImage, {
+          aspectRatio: 1,
+          viewMode: 1
+        });
+      };
+      reader.readAsDataURL(file);
+    });
 
-              const finalImage = canvas.toDataURL("image/png");
-              document.getElementById("preview").src = finalImage;
+    applyCrop.addEventListener("click", function () {
+      const croppedCanvas = cropper.getCroppedCanvas({
+        width: 1000,
+        height: 1000
+      });
 
-              const downloadBtn = document.getElementById("downloadBtn");
-              downloadBtn.style.display = "inline-block";
-              downloadBtn.onclick = function () {
-                const a = document.createElement("a");
-                a.href = finalImage;
-                a.download = "your_campaign_image.png";
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-              };
-            };
-            overlay.src = overlaySrc;
+      const ctx = canvas.getContext("2d");
+      const userImage = new Image();
+      userImage.onload = function () {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(userImage, 0, 0, canvas.width, canvas.height);
+
+        const overlay = new Image();
+        overlay.crossOrigin = "anonymous";
+        overlay.onload = function () {
+          ctx.drawImage(overlay, 0, 0, canvas.width, canvas.height);
+          const finalImage = canvas.toDataURL("image/png");
+          preview.src = finalImage;
+          preview.style.display = "block";
+          downloadBtn.style.display = "inline-block";
+
+          downloadBtn.onclick = function () {
+            const a = document.createElement("a");
+            a.href = finalImage;
+            a.download = "your_campaign_image.png";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
           };
-          userImage.src = event.target.result;
+
+          cropModal.style.display = "none";
         };
-        reader.readAsDataURL(file);
-      });
-    
-  
-<script src="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.js"></script>
-<script>
-  const fileInput = document.getElementById("fileInput");
-  const canvas = document.getElementById("canvas");
-  const preview = document.getElementById("preview");
-  const downloadBtn = document.getElementById("downloadBtn");
-
-  const overlaySrc = "https://static.wixstatic.com/media/0bec8e_cc52b1da609a49c091e158ced89aa57b~mv2.png";
-  let cropper;
-
-  fileInput.addEventListener("change", function (e) {
-    const file = e.target.files[0];
-    const reader = new FileReader();
-
-    reader.onload = function (event) {
-      let tempImage = document.createElement("img");
-      tempImage.id = "tempImage";
-      tempImage.src = event.target.result;
-      tempImage.style.maxWidth = "100%";
-      tempImage.style.marginTop = "20px";
-      document.body.appendChild(tempImage);
-
-      if (cropper) cropper.destroy();
-      cropper = new Cropper(tempImage, {
-        aspectRatio: 1,
-        viewMode: 1,
-        autoCropArea: 1,
-        responsive: true,
-        movable: false,
-        zoomable: false,
-        scalable: false,
-        cropend: () => {
-          const croppedCanvas = cropper.getCroppedCanvas({
-            width: 1000,
-            height: 1000
-          });
-
-          const ctx = canvas.getContext("2d");
-          const baseImage = new Image();
-          baseImage.onload = function () {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(baseImage, 0, 0, canvas.width, canvas.height);
-
-            const overlay = new Image();
-            overlay.crossOrigin = "anonymous";
-            overlay.onload = function () {
-              ctx.drawImage(overlay, 0, 0, canvas.width, canvas.height);
-              const finalImage = canvas.toDataURL("image/png");
-              preview.src = finalImage;
-              preview.style.display = "block";
-              downloadBtn.style.display = "inline-block";
-              downloadBtn.onclick = function () {
-                const a = document.createElement("a");
-                a.href = finalImage;
-                a.download = "your_campaign_image.png";
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-              };
-            };
-            overlay.src = overlaySrc;
-          };
-          baseImage.src = croppedCanvas.toDataURL("image/png");
-        }
-      });
-    };
-    reader.readAsDataURL(file);
-  });
-</script>
+        overlay.src = overlaySrc;
+      };
+      userImage.src = croppedCanvas.toDataURL("image/png");
+    });
+  </script>
 </body>
 </html>
