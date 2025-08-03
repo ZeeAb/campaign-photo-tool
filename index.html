@@ -164,7 +164,46 @@
       <button id="applyCrop" class="campaign-button">Apply</button>
     </div>
   </div>
+<script>
+  const languageStrings = {
+    en: {
+      title: "Create Your Campaign Visual",
+      description: "Upload and crop your image to generate a professional 1080x1080px visual with a campaign frame.",
+      uploadBtn: "Upload Your Image",
+      downloadBtn: "Download Your Image",
+      cropTitle: "Crop Your Photo",
+      applyBtn: "Apply"
+    },
+    fr: {
+      title: "Créez votre visuel de campagne",
+      description: "Téléchargez et recadrez votre image pour générer un visuel professionnel de 1080x1080px avec un cadre de campagne.",
+      uploadBtn: "Téléchargez votre image",
+      downloadBtn: "Téléchargez votre visuel",
+      cropTitle: "Recadrez votre photo",
+      applyBtn: "Appliquer"
+    },
+    pt: {
+      title: "Crie seu visual de campanha",
+      description: "Envie e recorte sua imagem para gerar um visual profissional de 1080x1080px com uma moldura de campanha.",
+      uploadBtn: "Enviar sua imagem",
+      downloadBtn: "Baixar sua imagem",
+      cropTitle: "Recorte sua foto",
+      applyBtn: "Aplicar"
+    }
+  };
 
+  const lang = document.documentElement.lang?.substring(0, 2).toLowerCase() || "en";
+  const strings = languageStrings[lang] || languageStrings.en;
+
+  window.addEventListener("DOMContentLoaded", () => {
+    document.querySelector("h1").textContent = strings.title;
+    document.querySelector("p").textContent = strings.description;
+    document.querySelector(".upload-wrapper span").textContent = strings.uploadBtn;
+    document.getElementById("downloadBtn").textContent = strings.downloadBtn;
+    document.querySelector("#cropModal h2").textContent = strings.cropTitle;
+    document.getElementById("applyCrop").textContent = strings.applyBtn;
+  });
+</script>
   <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.js"></script>
   <script>
     const fileInput = document.getElementById("fileInput");
