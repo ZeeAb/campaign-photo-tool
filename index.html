@@ -48,8 +48,8 @@
     }
 
     #exampleImage {
-      max-width: 300px;
-      border-radius: 12px;
+      max-width: 400px;
+      border-radius: 5px;
       margin-bottom: 20px;
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     }
@@ -151,45 +151,49 @@
       reader.readAsDataURL(file);
     });
 
-    applyCrop.addEventListener("click", function () {
-      const croppedCanvas = cropper.getCroppedCanvas({
-        width: 1000,
-        height: 1000
-      });
+   applyCrop.addEventListener("click", function () {
+  const croppedCanvas = cropper.getCroppedCanvas({
+    width: 1000,
+    height: 1000
+  });
 
-      const ctx = canvas.getContext("2d");
-      const userImage = new Image();
-      userImage.onload = function () {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(userImage, 0, 0, canvas.width, canvas.height);
+  const ctx = canvas.getContext("2d");
+  const userImage = new Image();
+  userImage.onload = function () {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(userImage, 0, 0, canvas.width, canvas.height);
 
-        const overlay = new Image();
-        overlay.crossOrigin = "anonymous";
-        overlay.onload = function () {
-          ctx.drawImage(overlay, 0, 0, canvas.width, canvas.height);
-          const finalImage = canvas.toDataURL("image/png");
-          preview.src = finalImage;
-          preview.style.display = "block";
-          downloadBtn.style.display = "inline-block";
+    const overlay = new Image();
+    overlay.crossOrigin = "anonymous";
+    overlay.onload = function () {
+      ctx.drawImage(overlay, 0, 0, canvas.width, canvas.height);
+      const finalImage = canvas.toDataURL("image/png");
 
-          // Replace example image with result
-          exampleImage.src = finalImage;
+      // 👇 Replace example image with final image
+      exampleImage.src = finalImage;
 
-          downloadBtn.onclick = function () {
-            const a = document.createElement("a");
-            a.href = finalImage;
-            a.download = "your_campaign_image.png";
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-          };
+      // 👇 Hide preview completely (optional but set anyway)
+      preview.src = finalImage;
+      preview.style.display = "none";
 
-          cropModal.style.display = "none";
-        };
-        overlay.src = overlaySrc;
+      // 👇 Show download button
+      downloadBtn.style.display = "inline-block";
+
+      downloadBtn.onclick = function () {
+        const a = document.createElement("a");
+        a.href = finalImage;
+        a.download = "your_campaign_image.png";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
       };
-      userImage.src = croppedCanvas.toDataURL("image/png");
-    });
+
+      cropModal.style.display = "none";
+    };
+    overlay.src = overlaySrc;
+  };
+  userImage.src = croppedCanvas.toDataURL("image/png");
+});
   </script>
 </body>
 </html>
