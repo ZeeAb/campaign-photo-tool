@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -48,12 +47,19 @@
       cursor: pointer;
     }
 
+    #exampleImage {
+      max-width: 300px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
     #preview {
       margin: 40px auto 0 auto;
       max-width: 90%;
       border-radius: 12px;
       box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-      display: block;
+      display: none;
     }
 
     .modal {
@@ -89,6 +95,9 @@
 </head>
 <body>
 
+  <!-- Example Image -->
+  <img id="exampleImage" src="https://static.wixstatic.com/media/0bec8e_9165e2b8aacd49f589ace25d84a333a7~mv2.jpg" alt="Example Visual" />
+
   <h1>Create Your Campaign Visual</h1>
   <p>Upload and crop your image to generate a professional 1080x1080px visual with a campaign frame.</p>
 
@@ -122,6 +131,7 @@
     const canvas = document.getElementById("canvas");
     const preview = document.getElementById("preview");
     const downloadBtn = document.getElementById("downloadBtn");
+    const exampleImage = document.getElementById("exampleImage");
 
     const overlaySrc = "https://static.wixstatic.com/media/0bec8e_f371827fa6aa4f068055b8e044e141b9~mv2.png";
     let cropper;
@@ -161,6 +171,9 @@
           preview.src = finalImage;
           preview.style.display = "block";
           downloadBtn.style.display = "inline-block";
+
+          // Replace example image with result
+          exampleImage.src = finalImage;
 
           downloadBtn.onclick = function () {
             const a = document.createElement("a");
