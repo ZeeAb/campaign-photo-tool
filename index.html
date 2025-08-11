@@ -77,10 +77,11 @@
   <!-- Frame language selector -->
   <div class="controls" role="group" aria-label="Frame language selector">
     <label for="frameLang">Frame language:</label>
-    <select id="frameLang">
-      <option value="en">English</option>
-      <option value="fr">Français</option>
-    </select>
+      <select id="frameLang">
+        <option value="en">English</option>
+        <option value="fr">Français</option>
+        <option value="pt">Português</option>
+      </select>
   </div>
 
   <label class="upload-wrapper" aria-label="Upload your image">
@@ -136,8 +137,11 @@
       }
     };
 
-    const rawLang = (document.documentElement.lang || "en").toLowerCase();
-    const lang2 = rawLang.slice(0,2);
+   const rawLang = (document.documentElement.lang || "").toLowerCase();
+const lang2 = rawLang.slice(0,2);
+if (["en","fr","pt"].includes(lang2) && document.getElementById("frameLang")) {
+  document.getElementById("frameLang").value = lang2;
+}
     const strings = languageStrings[lang2] || languageStrings.en;
 
     window.addEventListener("DOMContentLoaded", () => {
@@ -173,9 +177,10 @@
 
   // Overlays
   const overlayURLs = {
-    en: "https://static.wixstatic.com/media/0bec8e_f371827fa6aa4f068055b8e044e141b9~mv2.png",
-    fr: "https://static.wixstatic.com/media/0bec8e_a73c53d2727a4f3bb09faa9ba602f024~mv2.png"
-  };
+  en: "https://static.wixstatic.com/media/0bec8e_f371827fa6aa4f068055b8e044e141b9~mv2.png",
+  fr: "https://static.wixstatic.com/media/0bec8e_a73c53d2727a4f3bb09faa9ba602f024~mv2.png",
+  pt: "https://static.wixstatic.com/media/0bec8e_468b8cf0280f4d1f867e6b3eb48253c1~mv2.png"
+};
 
   // Quick visual logger on page
   function toast(msg, isErr=false){
