@@ -1,280 +1,181 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <title>Create Your Campaign Visual</title>
-  <link href="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.css" rel="stylesheet"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.css" rel="stylesheet"/>
+
   <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      text-align: center;
-      padding: 40px;
-    }
-
-    h1 {
-      font-size: 2rem;
-    }
-
-    p {
-      font-size: 1rem;
-      max-width: 600px;
-      margin: 0 auto 30px;
-    }
+    :root { --brand:#0078FF; --brand-pressed:#005ecb; }
+    * { box-sizing: border-box; }
+    body { font-family: 'Segoe UI', system-ui, -apple-system, Arial, sans-serif; text-align: center; padding: 40px; margin: 0; line-height: 1.35; }
+    h1 { font-size: 2rem; margin: 0 0 10px; }
+    p { font-size: 1rem; max-width: 680px; margin: 0 auto 30px; color: #222; }
 
     .campaign-button {
-      background-color: #0078FF;
-      color: #fff;
-      padding: 12px 24px;
-      border: none;
-      border-radius: 30px;
-      font-size: 16px;
-      font-weight: 600;
-      box-shadow: 0 4px 15px rgba(0, 120, 255, 0.2);
-      cursor: pointer;
-      transition: all 0.3s ease;
-      display: inline-block;
-      margin: 10px;
+      background-color: var(--brand); color: #fff; padding: 12px 24px; border: none; border-radius: 30px;
+      font-size: 16px; font-weight: 600; box-shadow: 0 4px 15px rgba(0, 120, 255, 0.2);
+      cursor: pointer; transition: transform .2s ease, box-shadow .2s ease, background-color .2s ease;
+      display: inline-flex; align-items: center; gap: 10px; margin: 10px;
+    }
+    .campaign-button:hover { background-color: var(--brand-pressed); box-shadow: 0 6px 20px rgba(0,94,203,.3); transform: translateY(-1px); }
+    .campaign-button:active { transform: translateY(0); }
+
+    .upload-wrapper { position: relative; display: inline-block; }
+    .upload-wrapper input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+
+    #exampleImage { max-width: 432px; width: 100%; height: auto; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); object-fit: cover; }
+
+    /* Frame language control row */
+    .controls {
+      display: inline-flex; align-items: center; gap: 12px; margin: 6px 0 14px;
+      padding: 8px 12px; border: 1px solid #eee; border-radius: 999px;
+    }
+    .controls label { font-size: 0.95rem; color: #333; }
+    .controls select {
+      border: 1px solid #ddd; border-radius: 999px; padding: 6px 12px; font-size: 0.95rem; background: #fff;
     }
 
-    .campaign-button:hover {
-      background-color: #005ecb;
-      box-shadow: 0 6px 20px rgba(0, 94, 203, 0.3);
-      transform: translateY(-2px);
-    }
-
-    .upload-wrapper {
-      position: relative;
-      display: inline-block;
-    }
-
-    .upload-wrapper input[type="file"] {
-      position: absolute;
-      left: 0;
-      top: 0;
-      opacity: 0;
-      width: 100%;
-      height: 100%;
-      cursor: pointer;
-    }
-
-    #exampleImage {
-      max-width: 360px;
-      width: 100%;
-      height: auto;
-      border-radius: 12px;
-      margin-bottom: 20px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    }
-
-    #preview {
-      display: none;
-    }
-
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 1000;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      overflow: auto;
-      background-color: rgba(0,0,0,0.8);
-      padding: 20px;
-      box-sizing: border-box;
-    }
-
+    /* Modal */
+    .modal { display: none; position: fixed; z-index: 1000; inset: 0; background-color: rgba(0,0,0,0.85); padding: 20px; }
+    .modal[aria-hidden="false"] { display: block; }
     .modal-content {
-      margin: 5% auto;
-      padding: 20px;
-      background: #fff;
-      border-radius: 8px;
-      max-width: 600px;
-      width: 100%;
-      text-align: center;
+      margin: 5% auto; padding: 20px; background: #fff; border-radius: 14px;
+      max-width: 680px; width: 100%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,.25);
     }
+    .modal img { max-width: 100%; height: auto; max-height: 70vh; display: block; margin: 0 auto; }
 
-    .modal img {
-      max-width: 100%;
-      height: auto;
-    }
-
-    canvas {
-      display: none;
-    }
+    /* Hidden work elements */
+    #preview, canvas { display: none; }
 
     @media (max-width: 600px) {
-      body {
-        padding: 20px;
-      }
-
-      h1 {
-        font-size: 1.5rem;
-      }
-
-      p {
-        font-size: 0.95rem;
-      }
-
-      .campaign-button {
-        font-size: 14px;
-        padding: 10px 20px;
-      }
-
-      .modal-content {
-        margin-top: 20%;
-        padding: 15px;
-      }
-
-      #exampleImage {
-        max-width: 100%;
-        margin-bottom: 16px;
-      }
+      body { padding: 20px; }
+      h1 { font-size: 1.5rem; }
+      p { font-size: .98rem; }
+      .campaign-button { font-size: 14px; padding: 10px 18px; }
+      .modal-content { margin-top: 18%; padding: 16px; }
+      #exampleImage { max-width: 100%; margin-bottom: 16px; }
+      .controls { width: 100%; justify-content: center; flex-wrap: wrap; }
     }
   </style>
 </head>
 <body>
 
-  <!-- Example Image -->
-  <img id="exampleImage" src="https://static.wixstatic.com/media/0bec8e_9165e2b8aacd49f589ace25d84a333a7~mv2.jpg" alt="Example Visual" />
+  <!-- Example Image (replaced with the user’s final image) -->
+  <img
+    id="exampleImage"
+    src="https://static.wixstatic.com/media/0bec8e_9165e2b8aacd49f589ace25d84a333a7~mv2.jpg"
+    alt="Example campaign visual"
+    referrerpolicy="no-referrer"
+    loading="lazy"
+  />
 
   <h1>Create Your Campaign Visual</h1>
-  <p>Upload and crop your image to create a square 1080x1080px visual with our campaign frame. </br>
+  <p id="desc"></p>
 
-(Note: Wide-angle shots may not crop well — close-ups work best!)</p>
+  <!-- Frame language selector -->
+  <div class="controls" role="group" aria-label="Frame language selector">
+    <label for="frameLang">Frame language:</label>
+    <select id="frameLang">
+      <option value="en">English</option>
+      <option value="fr">Français</option>
+    </select>
+  </div>
 
-  <label class="upload-wrapper">
-    <span class="campaign-button">Upload Your Image</span>
+  <label class="upload-wrapper" aria-label="Upload your image">
+    <span class="campaign-button" id="uploadLabel">Upload Your Image</span>
     <input type="file" id="fileInput" accept="image/*" />
   </label>
 
   <button id="downloadBtn" class="campaign-button" style="display:none;">Download Your Image</button>
 
-  <br>
-  <canvas id="canvas" width="1000" height="1000"></canvas>
-  <img id="preview" />
+  <!-- Hidden work elements -->
+  <canvas id="canvas" width="1080" height="1080" aria-hidden="true"></canvas>
+  <img id="preview" alt="" aria-hidden="true"/>
 
   <!-- Modal for cropping -->
-  <div id="cropModal" class="modal">
+  <div id="cropModal" class="modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="cropTitle">
     <div class="modal-content">
-      <h2>Crop Your Photo</h2>
-      <img id="cropImage" />
+      <h2 id="cropTitle">Crop Your Photo</h2>
+      <img id="cropImage" alt="Crop area"/>
       <br><br>
       <button id="applyCrop" class="campaign-button">Apply</button>
     </div>
   </div>
-<script>
-  const languageStrings = {
-    en: {
-      title: "Create Your Campaign Visual",
-      description: "Upload and crop your image to create a square 1080x1080px visual with our campaign frame. (Note: Wide-angle shots may not crop well — close-ups work best!)",
-      uploadBtn: "Upload Your Image",
-      downloadBtn: "Download Your Image",
-      cropTitle: "Crop Your Photo",
-      applyBtn: "Apply"
-    },
-    fr: {
-      title: "Créez votre visuel de campagne",
-      description: "Téléchargez et recadrez votre image pour créer un visuel carré de 1080 x 1080 pixels avec notre cadre de campagne. (À noter : les photos prises avec un grand angle peuvent ne pas être bien recadrées — les gros plans fonctionnent mieux !)",
-      uploadBtn: "Téléchargez votre image",
-      downloadBtn: "Téléchargez votre visuel",
-      cropTitle: "Recadrez votre photo",
-      applyBtn: "Appliquer"
-    },
-    pt: {
-      title: "Crie seu visual de campanha",
-      description: "Carregue e recorte a sua imagem para criar um visual quadrado de 1080x1080px com a moldura da nossa campanha. (Nota: fotos em grande angular podem não ficar bem recortadas — fotos em close-up funcionam melhor!)",
-      uploadBtn: "Enviar sua imagem",
-      downloadBtn: "Baixar sua imagem",
-      cropTitle: "Recorte sua foto",
-      applyBtn: "Aplicar"
-    }
-  };
 
-  const lang = document.documentElement.lang?.substring(0, 2).toLowerCase() || "en";
-  const strings = languageStrings[lang] || languageStrings.en;
-
-  window.addEventListener("DOMContentLoaded", () => {
-    document.querySelector("h1").textContent = strings.title;
-    document.querySelector("p").textContent = strings.description;
-    document.querySelector(".upload-wrapper span").textContent = strings.uploadBtn;
-    document.getElementById("downloadBtn").textContent = strings.downloadBtn;
-    document.querySelector("#cropModal h2").textContent = strings.cropTitle;
-    document.getElementById("applyCrop").textContent = strings.applyBtn;
-  });
-</script>
-  <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.js"></script>
+  <!-- i18n (UI text only; frame language is chosen by the selector above) -->
   <script>
-    const fileInput = document.getElementById("fileInput");
-    const cropImage = document.getElementById("cropImage");
-    const cropModal = document.getElementById("cropModal");
-    const applyCrop = document.getElementById("applyCrop");
-    const canvas = document.getElementById("canvas");
-    const preview = document.getElementById("preview");
-    const downloadBtn = document.getElementById("downloadBtn");
-    const exampleImage = document.getElementById("exampleImage");
+    const languageStrings = {
+      en: {
+        title: "Create Your Campaign Visual",
+        descriptionHTML: "Upload and crop your image to create a square 1080×1080px visual with our campaign frame.<br>(Note: Wide-angle shots may not crop well — close-ups work best!)",
+        uploadBtn: "Upload Your Image",
+        downloadBtn: "Download Your Image",
+        cropTitle: "Crop Your Photo",
+        applyBtn: "Apply",
+        frameLabel: "Frame language:"
+      },
+      fr: {
+        title: "Créez votre visuel de campagne",
+        descriptionHTML: "Téléchargez et recadrez votre image pour créer un visuel carré de 1080×1080 px avec notre cadre de campagne.<br>(À noter : les photos grand angle se recadrent moins bien — les gros plans fonctionnent mieux !)",
+        uploadBtn: "Télécharger votre image",
+        downloadBtn: "Télécharger votre visuel",
+        cropTitle: "Recadrez votre photo",
+        applyBtn: "Appliquer",
+        frameLabel: "Langue du cadre :"
+      },
+      pt: {
+        title: "Crie seu visual de campanha",
+        descriptionHTML: "Carregue e recorte sua imagem para criar um visual quadrado de 1080×1080px com a moldura da nossa campanha.<br>(Nota: fotos em grande angular podem não recortar bem — closes funcionam melhor!)",
+        uploadBtn: "Enviar sua imagem",
+        downloadBtn: "Baixar sua imagem",
+        cropTitle: "Recorte sua foto",
+        applyBtn: "Aplicar",
+        frameLabel: "Idioma da moldura:"
+      }
+    };
 
-    const overlaySrc = "https://static.wixstatic.com/media/0bec8e_f371827fa6aa4f068055b8e044e141b9~mv2.png";
-    let cropper;
+    const rawLang = (document.documentElement.lang || "en").toLowerCase();
+    const lang2 = rawLang.slice(0,2);
+    const strings = languageStrings[lang2] || languageStrings.en;
 
-    fileInput.addEventListener("change", function (e) {
-      const file = e.target.files[0];
-      const reader = new FileReader();
-      reader.onload = function (event) {
-        cropImage.src = event.target.result;
-        cropModal.style.display = "block";
-        if (cropper) cropper.destroy();
-        cropper = new Cropper(cropImage, {
-          aspectRatio: 1,
-          viewMode: 1
-        });
-      };
-      reader.readAsDataURL(file);
-    });
+    window.addEventListener("DOMContentLoaded", () => {
+      document.querySelector("h1").textContent = strings.title;
+      document.getElementById("desc").innerHTML = strings.descriptionHTML;
+      document.getElementById("uploadLabel").textContent = strings.uploadBtn;
+      document.getElementById("downloadBtn").textContent = strings.downloadBtn;
+      document.getElementById("cropTitle").textContent = strings.cropTitle;
+      document.getElementById("applyCrop").textContent = strings.applyBtn;
 
-    applyCrop.addEventListener("click", function () {
-      const croppedCanvas = cropper.getCroppedCanvas({
-        width: 1000,
-        height: 1000
-      });
+      // Localize selector label
+      document.querySelector('label[for="frameLang"]').textContent = strings.frameLabel;
 
-      const ctx = canvas.getContext("2d");
-      const userImage = new Image();
-      userImage.onload = function () {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(userImage, 0, 0, canvas.width, canvas.height);
-
-        const overlay = new Image();
-        overlay.crossOrigin = "anonymous";
-        overlay.onload = function () {
-          ctx.drawImage(overlay, 0, 0, canvas.width, canvas.height);
-          const finalImage = canvas.toDataURL("image/png");
-
-          // Replace example image with final image
-          exampleImage.src = finalImage;
-
-          // Keep preview hidden, but assign just in case
-          preview.src = finalImage;
-          preview.style.display = "none";
-
-          downloadBtn.style.display = "inline-block";
-
-          downloadBtn.onclick = function () {
-            const a = document.createElement("a");
-            a.href = finalImage;
-            a.download = "your_campaign_image.png";
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-          };
-
-          cropModal.style.display = "none";
-        };
-        overlay.src = overlaySrc;
-      };
-      userImage.src = croppedCanvas.toDataURL("image/png");
+      // Set default selection based on page language (en/fr only; fallback en)
+      const frameLang = document.getElementById("frameLang");
+      if (["en","fr"].includes(lang2)) frameLang.value = lang2;
+      else frameLang.value = "en";
     });
   </script>
-</body>
-</html>
+
+  <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.js"></script>
+  <script>
+    const fileInput   = document.getElementById("fileInput");
+    const cropImage   = document.getElementById("cropImage");
+    const cropModal   = document.getElementById("cropModal");
+    const applyCrop   = document.getElementById("applyCrop");
+    const canvas      = document.getElementById("canvas");
+    const preview     = document.getElementById("preview");
+    const downloadBtn = document.getElementById("downloadBtn");
+    const exampleImage= document.getElementById("exampleImage");
+    const frameLangEl = document.getElementById("frameLang");
+
+    // Overlay URLs for each frame language
+    const overlayURLs = {
+      en: "https://static.wixstatic.com/media/0bec8e_f371827fa6aa4f068055b8e044e141b9~mv2.png",
+      fr: "https://static.wixstatic.com/media/0bec8e_a73c53d2727a4f3bb09faa9ba602f024~mv2.png" // Provided FR frame
+    };
+
+    let cropper = null;
+
+    // Modal helpers
