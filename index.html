@@ -159,7 +159,8 @@
   </script>
 
   <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.js"></script>
-  <script>
+ <script>
+  // --- DOM refs
   const fileInput   = document.getElementById("fileInput");
   const cropImage   = document.getElementById("cropImage");
   const cropModal   = document.getElementById("cropModal");
@@ -170,31 +171,58 @@
   const exampleImage= document.getElementById("exampleImage");
   const frameLangEl = document.getElementById("frameLang");
 
+  // Overlays
   const overlayURLs = {
     en: "https://static.wixstatic.com/media/0bec8e_f371827fa6aa4f068055b8e044e141b9~mv2.png",
     fr: "https://static.wixstatic.com/media/0bec8e_a73c53d2727a4f3bb09faa9ba602f024~mv2.png"
   };
 
-  let cropper = null;
+  // Quick visual logger on page
+  function toast(msg, isErr=false){
+    console[isErr?'error':'log'](msg);
+    let t = document.getElementById('diagToast');
+    if(!t){
+      t = document.createElement('div');
+      t.id = 'diagToast';
+      t.style.cssText = 'position:fixed;left:12px;bottom:12px;z-index:99999;background:#111;color:#fff;padding:10px 12px;border-radius:8px;font:12px/1.3 system-ui;max-width:80vw;opacity:.92';
+      document.body.appendChild(t);
+    }
+    t.textContent = msg;
+  }
 
+  // Check that Cropper is actually available
+  if (typeof Cropper === 'undefined') {
+    toast('CropperJS not loaded. Check the <script src> URL or CSP.', true);
+  } else {
+    toast('CropperJS is loaded ✔');
+  }
+
+  // Modal helpers
+  let cropper = null;
   function openModal() {
     cropModal.setAttribute("aria-hidden", "false");
     cropModal.style.display = "block";
     document.body.style.overflow = "hidden";
+    toast('Modal opened');
   }
   function closeModal() {
     cropModal.setAttribute("aria-hidden", "true");
     cropModal.style.display = "none";
     document.body.style.overflow = "";
     if (cropper) { cropper.destroy(); cropper = null; }
+    toast('Modal closed');
   }
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && cropModal.getAttribute("aria-hidden") === "false") closeModal();
   });
   cropModal.addEventListener("click", (e) => { if (e.target === cropModal) closeModal(); });
 
-  // INIT CROPPER **ONLY AFTER** THE IMAGE HAS LOADED
+  // Initialize cropper only when the image has loaded
   function initCropperOnceImageLoaded() {
+    if (!cropImage.complete || !cropImage.naturalWidth) {
+      toast('Image not ready yet', true);
+      return;
+    }
     if (cropper) cropper.destroy();
     cropper = new Cropper(cropImage, {
       aspectRatio: 1,
@@ -203,41 +231,34 @@
       responsive: true,
       autoCropArea: 1
     });
+    toast('Cropper initialized ✔');
   }
 
-  // SAFER FILE LOADING (works better across browsers/sites than FileReader sometimes)
+  // File input handler
   fileInput.addEventListener("change", (e) => {
+    toast('File input change fired');
     const file = e.target.files && e.target.files[0];
-    if (!file) return;
-
+    if (!file) { toast('No file selected', true); return; }
     if (!/^image\//i.test(file.type)) {
       alert("Please choose an image file.");
       fileInput.value = "";
       return;
     }
 
-    // Important: set onload BEFORE assigning src
     cropImage.onload = () => {
-      try {
-        openModal();                  // show modal first so cropper gets proper dimensions
-        initCropperOnceImageLoaded(); // now create the cropper
-        console.log("Cropper initialized");
-      } catch (err) {
-        console.error("Cropper init error:", err);
-        alert("Could not initialize the cropper. Please try another image.");
-      }
+      toast('Selected image loaded');
+      openModal();
+      initCropperOnceImageLoaded();
     };
-
     cropImage.onerror = (err) => {
-      console.error("Image load error:", err);
+      toast('Image load error (see console).', true);
+      console.error(err);
       alert("Could not load the image. Please try another file.");
     };
 
-    // Use object URL (revoke it later)
+    // Use object URL (more robust across environments)
     const objectUrl = URL.createObjectURL(file);
     cropImage.src = objectUrl;
-
-    // Clean up the object URL when we’re done (after crop)
     cropImage.dataset.objectUrl = objectUrl;
   });
 
@@ -264,21 +285,18 @@
   }
 
   applyCrop.addEventListener("click", async () => {
-    if (!cropper) return;
+    if (!cropper) { toast('No cropper instance', true); return; }
 
-    const chosen = frameLangEl.value in overlayURLs ? frameLangEl.value : "en";
+    const chosen = (frameLangEl && (frameLangEl.value in overlayURLs)) ? frameLangEl.value : "en";
     const overlaySrc = overlayURLs[chosen];
 
-    // Create a perfectly square 1080×1080 crop
     const croppedCanvas = cropper.getCroppedCanvas({ width: 1080, height: 1080 });
     const userPNG = croppedCanvas.toDataURL("image/png");
 
     try {
       const finalImage = await drawToCanvas(userPNG, overlaySrc);
-
       exampleImage.src = finalImage;
       exampleImage.alt = "Your finalized campaign visual";
-
       preview.src = finalImage;
       preview.style.display = "none";
 
@@ -292,15 +310,16 @@
         a.remove();
       };
 
-      // Clean up the object URL used for the crop image to avoid memory leaks
       if (cropImage.dataset.objectUrl) {
         URL.revokeObjectURL(cropImage.dataset.objectUrl);
         delete cropImage.dataset.objectUrl;
       }
 
       closeModal();
+      toast('Final image ready ✔');
     } catch (err) {
       console.error(err);
+      toast('Error composing final image', true);
       alert("Sorry—there was an issue applying the frame. Please try again.");
     }
   });
