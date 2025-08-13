@@ -37,39 +37,73 @@
       border: 1px solid #ddd; border-radius: 999px; padding: 6px 12px; font-size: 0.95rem; background: #fff;
     }
 
-    /* Modal */
-    .modal { display: none; position: fixed; z-index: 1000; inset: 0; background-color: rgba(0,0,0,0.85); padding: 10px; }
+    /* ===== MOBILE-FRIENDLY MODAL (updated) ===== */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      inset: 0;
+      background-color: rgba(0,0,0,0.85);
+      padding: clamp(8px, 2vw, 12px);
+      height: 100dvh;          /* dynamic viewport height for mobile */
+    }
     .modal[aria-hidden="false"] { display: block; }
+
     .modal-content {
-      margin: 5% auto;
-      padding: 10px;
+      margin: 0 auto;          /* center without big top margin */
       background: #fff;
       border-radius: 8px;
       max-width: 600px;
       width: 100%;
+      max-height: 92dvh;       /* keep a little space within viewport */
+      display: flex;
+      flex-direction: column;
+      overflow: auto;          /* scroll if taller than screen */
+      -webkit-overflow-scrolling: touch;
+      padding: 12px;
       text-align: center;
     }
-  
-    .modal img { max-width: 100%; height: auto; max-height: 70vh; display: block; margin: 0 auto; }
+
+    .modal img { max-width: 100%; height: auto; display: block; margin: 0 auto; }
 
     /* Hidden work elements */
     #preview, canvas { display: none; }
+
+    /* Crop image area flexes; no fixed max-height so it can scroll inside modal */
     #cropImage {
-      flex: 1 1 auto;         /* allow it to grow/shrink */
+      flex: 1 1 auto;
+      width: 100%;
       max-width: 100%;
-      max-height: calc(500px - 120px); /* leave room for title + button */
+      height: auto;
+      max-height: none;
       object-fit: contain;
     }
+
+    /* Keep Apply button reachable: sticky within scrollable modal-content */
     #applyCrop {
-      flex: 0 0 auto;         /* fixed size at the bottom */
+      position: sticky;
+      bottom: 0;
+      z-index: 2;
       margin-top: 12px;
-  }
+      display: block;
+      width: 100%;
+      border-radius: 0 0 8px 8px;
+      padding: 14px 16px;
+    }
+
+    /* Ensure CropperJS container fits width */
+    .modal-content .cropper-container {
+      width: 100% !important;
+      max-width: 100% !important;
+    }
+
     @media (max-width: 600px) {
       body { padding: 20px; }
       h1 { font-size: 1.5rem; }
       p { font-size: .98rem; }
       .campaign-button { font-size: 14px; padding: 10px 18px; }
-      .modal-content { margin-top: 18%; padding: 16px; }
+      .modal { padding: 8px; }
+      .modal-content { max-height: 94dvh; }
       #exampleImage { max-width: 100%; margin-bottom: 16px; }
       .controls { width: 100%; justify-content: center; flex-wrap: wrap; }
     }
@@ -86,7 +120,7 @@
     loading="lazy"
   />
 
- <!-- <h1>Create Your Campaign Visual</h1> -->
+  <!-- <h1>Create Your Campaign Visual</h1> -->
   <p id="desc"></p>
 
   <!-- Frame language selector -->
@@ -120,7 +154,7 @@
     </div>
   </div>
 
-  <!-- i18n (UI text only; frame language is chosen by the selector above) 
+  <!-- i18n (UI text only; frame language is chosen by the selector above)
   <script>
     const languageStrings = {
       en: {
@@ -152,11 +186,11 @@
       }
     };
 
-   const rawLang = (document.documentElement.lang || "").toLowerCase();
-const lang2 = rawLang.slice(0,2);
-if (["en","fr","pt"].includes(lang2) && document.getElementById("frameLang")) {
-  document.getElementById("frameLang").value = lang2;
-}
+    const rawLang = (document.documentElement.lang || "").toLowerCase();
+    const lang2 = rawLang.slice(0,2);
+    if (["en","fr","pt"].includes(lang2) && document.getElementById("frameLang")) {
+      document.getElementById("frameLang").value = lang2;
+    }
     const strings = languageStrings[lang2] || languageStrings.en;
 
     window.addEventListener("DOMContentLoaded", () => {
@@ -166,19 +200,16 @@ if (["en","fr","pt"].includes(lang2) && document.getElementById("frameLang")) {
       document.getElementById("downloadBtn").textContent = strings.downloadBtn;
       document.getElementById("cropTitle").textContent = strings.cropTitle;
       document.getElementById("applyCrop").textContent = strings.applyBtn;
-
-      // Localize selector label
       document.querySelector('label[for="frameLang"]').textContent = strings.frameLabel;
 
-      // Set default selection based on page language (en/fr only; fallback en)
       const frameLang = document.getElementById("frameLang");
       if (["en","fr"].includes(lang2)) frameLang.value = lang2;
       else frameLang.value = "en";
     });
   </script>
--->
+  -->
   <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.js"></script>
- <script>
+  <script>
   // --- DOM refs
   const fileInput   = document.getElementById("fileInput");
   const cropImage   = document.getElementById("cropImage");
@@ -192,10 +223,10 @@ if (["en","fr","pt"].includes(lang2) && document.getElementById("frameLang")) {
 
   // Overlays
   const overlayURLs = {
-  en: "https://static.wixstatic.com/media/0bec8e_f371827fa6aa4f068055b8e044e141b9~mv2.png",
-  fr: "https://static.wixstatic.com/media/0bec8e_a73c53d2727a4f3bb09faa9ba602f024~mv2.png",
-  pt: "https://static.wixstatic.com/media/0bec8e_468b8cf0280f4d1f867e6b3eb48253c1~mv2.png"
-};
+    en: "https://static.wixstatic.com/media/0bec8e_f371827fa6aa4f068055b8e044e141b9~mv2.png",
+    fr: "https://static.wixstatic.com/media/0bec8e_a73c53d2727a4f3bb09faa9ba602f024~mv2.png",
+    pt: "https://static.wixstatic.com/media/0bec8e_468b8cf0280f4d1f867e6b3eb48253c1~mv2.png"
+  };
 
   // Quick visual logger on page
   function toast(msg, isErr=false){
@@ -343,4 +374,6 @@ if (["en","fr","pt"].includes(lang2) && document.getElementById("frameLang")) {
       alert("Sorry—there was an issue applying the frame. Please try again.");
     }
   });
-</script>
+  </script>
+</body>
+</html>
