@@ -37,11 +37,11 @@
       border: 1px solid #ddd; border-radius: 999px; padding: 6px 12px; font-size: 0.95rem; background: #fff;
     }
 
-    /* ===== MOBILE-FRIENDLY MODAL (updated) ===== */
+    /* ===== MOBILE-FRIENDLY MODAL (top Apply button) ===== */
     .modal {
       display: none;
       position: fixed;
-      z-index: 1000;
+      z-index: 2147483647; /* very high to beat host page z-index */
       inset: 0;
       background-color: rgba(0,0,0,0.85);
       padding: clamp(8px, 2vw, 12px);
@@ -50,18 +50,47 @@
     .modal[aria-hidden="false"] { display: block; }
 
     .modal-content {
-      margin: 0 auto;          /* center without big top margin */
+      margin: 0 auto;
       background: #fff;
       border-radius: 8px;
       max-width: 600px;
       width: 100%;
-      max-height: 92dvh;       /* keep a little space within viewport */
+      max-height: 92dvh;
       display: flex;
       flex-direction: column;
-      overflow: auto;          /* scroll if taller than screen */
+      overflow: auto;               /* scrollable body */
       -webkit-overflow-scrolling: touch;
-      padding: 12px;
       text-align: center;
+    }
+
+    /* Sticky header: title + Apply button */
+    .modal-header {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: #fff;
+      padding: 12px 12px 8px;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .modal-header h2 {
+      margin: 0;
+      font-size: 1.1rem;
+      line-height: 1.2;
+      text-align: left;
+    }
+    .modal-header #applyCrop {
+      margin: 0;            /* align flush in header */
+      border-radius: 999px; /* pill button */
+      padding: 10px 16px;
+      font-size: 14px;
+    }
+
+    .modal-body {
+      padding: 12px;
     }
 
     .modal img { max-width: 100%; height: auto; display: block; margin: 0 auto; }
@@ -69,26 +98,13 @@
     /* Hidden work elements */
     #preview, canvas { display: none; }
 
-    /* Crop image area flexes; no fixed max-height so it can scroll inside modal */
+    /* Crop image scrolls beneath the sticky header */
     #cropImage {
-      flex: 1 1 auto;
       width: 100%;
       max-width: 100%;
       height: auto;
-      max-height: none;
+      max-height: none;     /* allow it to exceed viewport; container scrolls */
       object-fit: contain;
-    }
-
-    /* Keep Apply button reachable: sticky within scrollable modal-content */
-    #applyCrop {
-      position: sticky;
-      bottom: 0;
-      z-index: 2;
-      margin-top: 12px;
-      display: block;
-      width: 100%;
-      border-radius: 0 0 8px 8px;
-      padding: 14px 16px;
     }
 
     /* Ensure CropperJS container fits width */
@@ -147,67 +163,16 @@
   <!-- Modal for cropping -->
   <div id="cropModal" class="modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="cropTitle">
     <div class="modal-content">
-      <h2 id="cropTitle">Crop Your Photo</h2>
-      <img id="cropImage" alt="Crop area"/>
-      <br><br>
-      <button id="applyCrop" class="campaign-button">Apply</button>
+      <div class="modal-header">
+        <h2 id="cropTitle">Crop Your Photo</h2>
+        <button id="applyCrop" class="campaign-button">Apply</button>
+      </div>
+      <div class="modal-body">
+        <img id="cropImage" alt="Crop area"/>
+      </div>
     </div>
   </div>
 
-  <!-- i18n (UI text only; frame language is chosen by the selector above)
-  <script>
-    const languageStrings = {
-      en: {
-        title: "Create Your Campaign Visual",
-        descriptionHTML: "Upload and crop your image to create a square 1080×1080px visual with our campaign frame.<br>(Note: Wide-angle shots may not crop well — close-ups work best!)",
-        uploadBtn: "Upload Your Image",
-        downloadBtn: "Download Your Image",
-        cropTitle: "Crop Your Photo",
-        applyBtn: "Apply",
-        frameLabel: "Frame language:"
-      },
-      fr: {
-        title: "Créez votre visuel de campagne",
-        descriptionHTML: "Téléchargez et recadrez votre image pour créer un visuel carré de 1080×1080 px avec notre cadre de campagne.<br>(À noter : les photos grand angle se recadrent moins bien — les gros plans fonctionnent mieux !)",
-        uploadBtn: "Télécharger votre image",
-        downloadBtn: "Télécharger votre visuel",
-        cropTitle: "Recadrez votre photo",
-        applyBtn: "Appliquer",
-        frameLabel: "Langue du cadre :"
-      },
-      pt: {
-        title: "Crie seu visual de campanha",
-        descriptionHTML: "Carregue e recorte sua imagem para criar um visual quadrado de 1080×1080px com a moldura da nossa campanha.<br>(Nota: fotos em grande angular podem não recortar bem — closes funcionam melhor!)",
-        uploadBtn: "Enviar sua imagem",
-        downloadBtn: "Baixar sua imagem",
-        cropTitle: "Recorte sua foto",
-        applyBtn: "Aplicar",
-        frameLabel: "Idioma da moldura:"
-      }
-    };
-
-    const rawLang = (document.documentElement.lang || "").toLowerCase();
-    const lang2 = rawLang.slice(0,2);
-    if (["en","fr","pt"].includes(lang2) && document.getElementById("frameLang")) {
-      document.getElementById("frameLang").value = lang2;
-    }
-    const strings = languageStrings[lang2] || languageStrings.en;
-
-    window.addEventListener("DOMContentLoaded", () => {
-      document.querySelector("h1").textContent = strings.title;
-      document.getElementById("desc").innerHTML = strings.descriptionHTML;
-      document.getElementById("uploadLabel").textContent = strings.uploadBtn;
-      document.getElementById("downloadBtn").textContent = strings.downloadBtn;
-      document.getElementById("cropTitle").textContent = strings.cropTitle;
-      document.getElementById("applyCrop").textContent = strings.applyBtn;
-      document.querySelector('label[for="frameLang"]').textContent = strings.frameLabel;
-
-      const frameLang = document.getElementById("frameLang");
-      if (["en","fr"].includes(lang2)) frameLang.value = lang2;
-      else frameLang.value = "en";
-    });
-  </script>
-  -->
   <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.js"></script>
   <script>
   // --- DOM refs
@@ -373,6 +338,11 @@
       toast('Error composing final image', true);
       alert("Sorry—there was an issue applying the frame. Please try again.");
     }
+  });
+
+  // Resize/orientation recalculation (helps in some embedded contexts)
+  window.addEventListener('resize', () => {
+    if (cropper && typeof cropper.resize === 'function') cropper.resize();
   });
   </script>
 </body>
