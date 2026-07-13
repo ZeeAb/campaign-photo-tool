@@ -130,7 +130,7 @@
   <!-- Example Image (replaced with the user’s final image) -->
   <img
     id="exampleImage"
-    src="https://static.wixstatic.com/media/0bec8e_a7efb727451a494f899b7785c0723b4c~mv2.jpg"
+    src="https://static.wixstatic.com/media/0bec8e_9165e2b8aacd49f589ace25d84a333a7~mv2.jpg"
     alt="Example campaign visual"
     referrerpolicy="no-referrer"
     loading="lazy"
@@ -197,8 +197,8 @@
   const overlayURLs = {
     square: {
       en: "https://static.wixstatic.com/media/0bec8e_628ba20bf77046e9a41fc35e92bf156a~mv2.png",
-      fr: "https://static.wixstatic.com/media/0bec8e_be9f23d6fac641f4a49b7a3f05209bd4~mv2.png",
-      pt: "https://static.wixstatic.com/media/0bec8e_3eb8aca8a2d54447ac4a44e3867ee43b~mv2.png"
+      fr: "https://static.wixstatic.com/media/0bec8e_a73c53d2727a4f3bb09faa9ba602f024~mv2.png",
+      pt: "https://static.wixstatic.com/media/0bec8e_468b8cf0280f4d1f867e6b3eb48253c1~mv2.png"
     },
     landscape: {
       en: null, // TODO: add a landscape-authored frame image here if/when available
@@ -296,9 +296,20 @@
     cropImage.dataset.objectUrl = objectUrl;
   });
 
-  // Draws the (already cropped) source canvas at its own aspect ratio, then
-  // overlays a frame that is scaled UNIFORMLY (same factor on both axes) so
-  // the frame artwork is never stretched or squashed.
+  // How much of the frame is allowed to sit ON TOP of the photo before the
+  // rest is appended as extra canvas space below it.
+  //   0    = fully appended: 100% of the photo stays visible, frame sits
+  //          entirely in new space below it (hard seam, no overlap)
+  //   0.10 = only the top 10% of the frame overlaps the photo's bottom edge;
+  //          the remaining 90% extends the canvas downward (current default)
+  //   1    = fully overlaid on the photo (the old behavior, no extension)
+  const FRAME_OVERLAP_RATIO = 0.10;
+
+  // Draws the (already cropped) source photo at its own aspect ratio, then
+  // places a frame that is scaled UNIFORMLY (same factor on both axes, so
+  // it's never stretched or squashed). For square/portrait photos, most of
+  // the frame is APPENDED below the photo (canvas grows downward) rather
+  // than overlaid on top of it, so the photo stays almost entirely visible.
   function drawToCanvas(sourceCanvas, lang) {
     return new Promise((resolve, reject) => {
       const srcW = sourceCanvas.width;
@@ -306,16 +317,10 @@
 
       // Uniform downscale only if needed — keeps the photo's exact aspect ratio.
       const fit = Math.min(1, MAX_OUTPUT_EDGE / Math.max(srcW, srcH));
-      const outW = Math.round(srcW * fit);
-      const outH = Math.round(srcH * fit);
+      const photoW = Math.round(srcW * fit);
+      const photoH = Math.round(srcH * fit);
 
-      canvas.width = outW;
-      canvas.height = outH;
-      const ctx = canvas.getContext("2d");
-      ctx.clearRect(0, 0, outW, outH);
-      ctx.drawImage(sourceCanvas, 0, 0, outW, outH);
-
-      const isLandscape = outW > outH;
+      const isLandscape = photoW > photoH;
       const bucket = isLandscape ? "landscape" : "square"; // "square" bucket also covers portrait
       let overlaySrc = overlayURLs[bucket][lang];
       let usedFallback = false;
@@ -329,37 +334,45 @@
       overlay.onload = () => {
         const frameNativeW = overlay.naturalWidth;
         const frameNativeH = overlay.naturalHeight;
-        let frameW, frameH, dx, dy;
+        const ctx = canvas.getContext("2d");
 
-        if (bucket === "landscape" && !usedFallback) {
-          // Real landscape-authored frame: scale uniformly to the canvas
-          // height, center horizontally.
-          const scale = outH / frameNativeH;
-          frameH = outH;
-          frameW = frameNativeW * scale;
-          dx = (outW - frameW) / 2;
-          dy = 0;
-        } else if (bucket === "landscape" && usedFallback) {
-          // No landscape art yet: scale the square frame uniformly to the
-          // canvas height (never stretched), center it horizontally. This
-          // may leave transparent space on the sides for very wide photos —
-          // that's intentional, so nothing gets warped.
-          const scale = outH / frameNativeH;
-          frameH = frameNativeH * scale;
-          frameW = frameNativeW * scale;
-          dx = (outW - frameW) / 2;
-          dy = outH - frameH;
-        } else {
-          // Square or portrait: scale the frame uniformly to the canvas
-          // width, anchor to the bottom. Extra height above it (portrait
-          // photos) just shows more of the photo, exactly like the square case.
-          const scale = outW / frameNativeW;
-          frameW = frameNativeW * scale;
-          frameH = frameNativeH * scale;
-          dx = 0;
-          dy = outH - frameH;
+        if (bucket === "square") {
+          // --- Square/portrait: APPEND the frame below the photo ---
+          // Single uniform scale (photo width) — never stretched on one axis.
+          const scale = photoW / frameNativeW;
+          const frameW = frameNativeW * scale;
+          const frameH = frameNativeH * scale;
+
+          const overlapH = frameH * FRAME_OVERLAP_RATIO; // portion sitting on the photo
+          const extendH  = frameH - overlapH;             // portion appended below
+
+          canvas.width  = photoW;
+          canvas.height = Math.round(photoH + extendH);
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+          // Full photo, uncropped, drawn at the top — nothing hidden except
+          // the small `overlapH` sliver the frame sits over.
+          ctx.drawImage(sourceCanvas, 0, 0, photoW, photoH);
+
+          // Frame drawn so only `overlapH` of it covers the photo; the rest
+          // lands in the newly appended canvas space below the photo.
+          ctx.drawImage(overlay, 0, photoH - overlapH, frameW, frameH);
+
+          resolve(canvas.toDataURL("image/png"));
+          return;
         }
 
+        // --- Landscape: unchanged for now (full overlay, centered) ---
+        canvas.width = photoW;
+        canvas.height = photoH;
+        ctx.clearRect(0, 0, photoW, photoH);
+        ctx.drawImage(sourceCanvas, 0, 0, photoW, photoH);
+
+        const scale = photoH / frameNativeH;
+        const frameH = frameNativeH * scale;
+        const frameW = frameNativeW * scale;
+        const dx = (photoW - frameW) / 2;
+        const dy = photoH - frameH;
         ctx.drawImage(overlay, dx, dy, frameW, frameH);
         resolve(canvas.toDataURL("image/png"));
       };
