@@ -130,7 +130,7 @@
   <!-- Example Image (replaced with the user’s final image) -->
   <img
     id="exampleImage"
-    src="https://static.wixstatic.com/media/0bec8e_a7efb727451a494f899b7785c0723b4c~mv2.jpg"
+    src="https://static.wixstatic.com/media/0bec8e_9165e2b8aacd49f589ace25d84a333a7~mv2.jpg"
     alt="Example campaign visual"
     referrerpolicy="no-referrer"
     loading="lazy"
@@ -157,7 +157,7 @@
   <button id="downloadBtn" class="campaign-button" style="display:none;">Download Your Image</button>
 
   <!-- Hidden work elements -->
-  <canvas id="canvas" width="1080" height="1080" aria-hidden="true"></canvas>
+  <canvas id="canvas" aria-hidden="true"></canvas>
   <img id="preview" alt="" aria-hidden="true"/>
 
   <!-- Modal for cropping -->
@@ -187,11 +187,29 @@
   const frameLangEl = document.getElementById("frameLang");
 
   // Overlays
+  // "square" frames are used for both square AND portrait photos (the banner
+  // anchors to the bottom, so extra height above it just shows more photo).
+  // "landscape" frames are used for photos wider than they are tall. If you
+  // don't have landscape-specific artwork yet, leave those as null — the code
+  // will automatically fall back to a safe, non-distorted, centered version
+  // of the square frame. Swap in real landscape art here later for a fully
+  // polished wide-format look.
   const overlayURLs = {
-    en: "https://static.wixstatic.com/media/0bec8e_21819225e13b428587d216f1fc9bcd23~mv2.png",
-    fr: "https://static.wixstatic.com/media/0bec8e_be9f23d6fac641f4a49b7a3f05209bd4~mv2.png",
-    pt: "https://static.wixstatic.com/media/0bec8e_3eb8aca8a2d54447ac4a44e3867ee43b~mv2.png"
+    square: {
+      en: "https://static.wixstatic.com/media/0bec8e_f371827fa6aa4f068055b8e044e141b9~mv2.png",
+      fr: "https://static.wixstatic.com/media/0bec8e_a73c53d2727a4f3bb09faa9ba602f024~mv2.png",
+      pt: "https://static.wixstatic.com/media/0bec8e_468b8cf0280f4d1f867e6b3eb48253c1~mv2.png"
+    },
+    landscape: {
+      en: null, // TODO: add a landscape-authored frame image here if/when available
+      fr: null,
+      pt: null
+    }
   };
+
+  // Cap the long edge of the final export so huge phone photos don't produce
+  // multi-megabyte PNGs. This is a uniform scale (preserves aspect ratio).
+  const MAX_OUTPUT_EDGE = 1600;
 
   // Quick visual logger on page
   function toast(msg, isErr=false){
@@ -241,11 +259,11 @@
     }
     if (cropper) cropper.destroy();
     cropper = new Cropper(cropImage, {
-      aspectRatio: 1,
+      aspectRatio: NaN,   // free-form: no longer forces a 1:1 crop
       viewMode: 1,
       dragMode: "move",
       responsive: true,
-      autoCropArea: 1
+      autoCropArea: 1     // defaults the crop box to the full photo
     });
     toast('Cropper initialized ✔');
   }
@@ -278,39 +296,89 @@
     cropImage.dataset.objectUrl = objectUrl;
   });
 
-  function drawToCanvas(srcDataUrl, overlayUrl) {
+  // Draws the (already cropped) source canvas at its own aspect ratio, then
+  // overlays a frame that is scaled UNIFORMLY (same factor on both axes) so
+  // the frame artwork is never stretched or squashed.
+  function drawToCanvas(sourceCanvas, lang) {
     return new Promise((resolve, reject) => {
-      const ctx = canvas.getContext("2d");
-      const baseImg = new Image();
-      baseImg.onload = () => {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(baseImg, 0, 0, canvas.width, canvas.height);
+      const srcW = sourceCanvas.width;
+      const srcH = sourceCanvas.height;
 
-        const overlay = new Image();
-        overlay.crossOrigin = "anonymous";
-        overlay.onload = () => {
-          ctx.drawImage(overlay, 0, 0, canvas.width, canvas.height);
-          resolve(canvas.toDataURL("image/png"));
-        };
-        overlay.onerror = reject;
-        overlay.src = overlayUrl;
+      // Uniform downscale only if needed — keeps the photo's exact aspect ratio.
+      const fit = Math.min(1, MAX_OUTPUT_EDGE / Math.max(srcW, srcH));
+      const outW = Math.round(srcW * fit);
+      const outH = Math.round(srcH * fit);
+
+      canvas.width = outW;
+      canvas.height = outH;
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, outW, outH);
+      ctx.drawImage(sourceCanvas, 0, 0, outW, outH);
+
+      const isLandscape = outW > outH;
+      const bucket = isLandscape ? "landscape" : "square"; // "square" bucket also covers portrait
+      let overlaySrc = overlayURLs[bucket][lang];
+      let usedFallback = false;
+      if (!overlaySrc) {
+        overlaySrc = overlayURLs.square[lang]; // fall back to the square frame
+        usedFallback = true;
+      }
+
+      const overlay = new Image();
+      overlay.crossOrigin = "anonymous";
+      overlay.onload = () => {
+        const frameNativeW = overlay.naturalWidth;
+        const frameNativeH = overlay.naturalHeight;
+        let frameW, frameH, dx, dy;
+
+        if (bucket === "landscape" && !usedFallback) {
+          // Real landscape-authored frame: scale uniformly to the canvas
+          // height, center horizontally.
+          const scale = outH / frameNativeH;
+          frameH = outH;
+          frameW = frameNativeW * scale;
+          dx = (outW - frameW) / 2;
+          dy = 0;
+        } else if (bucket === "landscape" && usedFallback) {
+          // No landscape art yet: scale the square frame uniformly to the
+          // canvas height (never stretched), center it horizontally. This
+          // may leave transparent space on the sides for very wide photos —
+          // that's intentional, so nothing gets warped.
+          const scale = outH / frameNativeH;
+          frameH = frameNativeH * scale;
+          frameW = frameNativeW * scale;
+          dx = (outW - frameW) / 2;
+          dy = outH - frameH;
+        } else {
+          // Square or portrait: scale the frame uniformly to the canvas
+          // width, anchor to the bottom. Extra height above it (portrait
+          // photos) just shows more of the photo, exactly like the square case.
+          const scale = outW / frameNativeW;
+          frameW = frameNativeW * scale;
+          frameH = frameNativeH * scale;
+          dx = 0;
+          dy = outH - frameH;
+        }
+
+        ctx.drawImage(overlay, dx, dy, frameW, frameH);
+        resolve(canvas.toDataURL("image/png"));
       };
-      baseImg.onerror = reject;
-      baseImg.src = srcDataUrl;
+      overlay.onerror = reject;
+      overlay.src = overlaySrc;
     });
   }
 
   applyCrop.addEventListener("click", async () => {
     if (!cropper) { toast('No cropper instance', true); return; }
 
-    const chosen = (frameLangEl && (frameLangEl.value in overlayURLs)) ? frameLangEl.value : "en";
-    const overlaySrc = overlayURLs[chosen];
+    const chosen = (frameLangEl && (frameLangEl.value in overlayURLs.square)) ? frameLangEl.value : "en";
 
-    const croppedCanvas = cropper.getCroppedCanvas({ width: 1080, height: 1080 });
-    const userPNG = croppedCanvas.toDataURL("image/png");
+    // No forced width/height here — uses the crop box's own resolution,
+    // so the photo's aspect ratio is preserved exactly.
+    const croppedCanvas = cropper.getCroppedCanvas();
 
     try {
-      const finalImage = await drawToCanvas(userPNG, overlaySrc);
+      const finalImage = await drawToCanvas(croppedCanvas, chosen);
       exampleImage.src = finalImage;
       exampleImage.alt = "Your finalized campaign visual";
       preview.src = finalImage;
