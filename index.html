@@ -58,7 +58,8 @@
       max-height: 92dvh;
       display: flex;
       flex-direction: column;
-      overflow: auto;               /* scrollable body */
+      overflow-y: auto;             /* scrollable body */
+      overflow-x: visible;          /* never clip Cropper's edge/corner handles */
       -webkit-overflow-scrolling: touch;
       text-align: center;
     }
@@ -130,7 +131,7 @@
   <!-- Example Image (replaced with the user’s final image) -->
   <img
     id="exampleImage"
-    src="https://static.wixstatic.com/media/0bec8e_a7efb727451a494f899b7785c0723b4c~mv2.jpg"
+    src="https://static.wixstatic.com/media/0bec8e_9165e2b8aacd49f589ace25d84a333a7~mv2.jpg"
     alt="Example campaign visual"
     referrerpolicy="no-referrer"
     loading="lazy"
@@ -303,7 +304,7 @@
   //   0.10 = only the top 10% of the frame overlaps the photo's bottom edge;
   //          the remaining 90% extends the canvas downward (current default)
   //   1    = fully overlaid on the photo (the old behavior, no extension)
-  const FRAME_OVERLAP_RATIO = 0.89;
+  const FRAME_OVERLAP_RATIO = 0.10;
 
   // Draws the (already cropped) source photo at its own aspect ratio, then
   // places a frame that is scaled UNIFORMLY (same factor on both axes, so
